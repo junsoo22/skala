@@ -1,3 +1,4 @@
+import array
 import random
 import sys
 
@@ -18,6 +19,29 @@ FALL_INTERVAL_MS = 500
 BLACK = (0, 0, 0)
 GRAY = (40, 40, 40)
 WHITE = (255, 255, 255)
+
+PREVIEW_CELL_SIZE = 20
+PREVIEW_BOX_SIZE = 4 * PREVIEW_CELL_SIZE
+PREVIEW_X = BOARD_WIDTH + 10
+PREVIEW_Y = 45
+SCORE_Y = PREVIEW_Y + PREVIEW_BOX_SIZE + 20
+
+SAMPLE_RATE = 44100
+BGM_AMPLITUDE = 4000
+NOTE_FREQS = {
+    "G4": 392.00,
+    "A4": 440.00,
+    "B4": 493.88,
+    "C5": 523.25,
+    "D5": 587.33,
+    "E5": 659.25,
+}
+BGM_MELODY = [
+    ("A4", 0.2), ("C5", 0.2), ("E5", 0.2), ("D5", 0.2),
+    ("C5", 0.2), ("A4", 0.2), ("C5", 0.2), ("E5", 0.2),
+    ("D5", 0.2), ("C5", 0.2), ("B4", 0.2), ("A4", 0.2),
+    ("G4", 0.2), ("A4", 0.2), ("B4", 0.2), ("C5", 0.4),
+]
 
 # 각 테트로미노의 회전 상태별 (row, col) 오프셋
 SHAPES = {
@@ -65,6 +89,23 @@ SHAPE_COLORS = {
     "J": (0, 0, 255),
     "L": (255, 165, 0),
 }
+
+
+def _square_wave(freq, duration):
+    n_samples = int(SAMPLE_RATE * duration)
+    samples = array.array("h", [0] * n_samples)
+    if freq > 0:
+        period = SAMPLE_RATE / freq
+        for i in range(n_samples):
+            samples[i] = BGM_AMPLITUDE if (i % period) < period / 2 else -BGM_AMPLITUDE
+    return samples
+
+
+def make_bgm_sound():
+    buffer = array.array("h")
+    for note, duration in BGM_MELODY:
+        buffer.extend(_square_wave(NOTE_FREQS[note], duration))
+    return pygame.mixer.Sound(buffer=buffer)
 
 
 class Piece:
@@ -142,7 +183,28 @@ def hard_drop(board, piece):
         pass
 
 
-def draw_board(screen, board, piece, score, game_over, font):
+def draw_next_piece(screen, next_piece, font):
+    label = font.render("NEXT", True, WHITE)
+    screen.blit(label, (PREVIEW_X, PREVIEW_Y - 25))
+
+    box_rect = pygame.Rect(PREVIEW_X, PREVIEW_Y, PREVIEW_BOX_SIZE, PREVIEW_BOX_SIZE)
+    pygame.draw.rect(screen, GRAY, box_rect, 1)
+
+    cells = SHAPES[next_piece.shape_key][0]
+    min_row = min(row for row, _ in cells)
+    min_col = min(col for _, col in cells)
+    for row, col in cells:
+        rect = pygame.Rect(
+            PREVIEW_X + (col - min_col) * PREVIEW_CELL_SIZE,
+            PREVIEW_Y + (row - min_row) * PREVIEW_CELL_SIZE,
+            PREVIEW_CELL_SIZE,
+            PREVIEW_CELL_SIZE,
+        )
+        pygame.draw.rect(screen, next_piece.color, rect)
+        pygame.draw.rect(screen, GRAY, rect, 1)
+
+
+def draw_board(screen, board, piece, next_piece, score, game_over, font):
     screen.fill(BLACK)
 
     for row in range(ROWS):
@@ -160,25 +222,33 @@ def draw_board(screen, board, piece, score, game_over, font):
                 pygame.draw.rect(screen, piece.color, rect)
                 pygame.draw.rect(screen, GRAY, rect, 1)
 
+    draw_next_piece(screen, next_piece, font)
+
     score_text = font.render(f"Score: {score}", True, WHITE)
-    screen.blit(score_text, (BOARD_WIDTH + 10, 20))
+    screen.blit(score_text, (BOARD_WIDTH + 10, SCORE_Y))
 
     if game_over:
         over_text = font.render("GAME OVER", True, WHITE)
-        screen.blit(over_text, (BOARD_WIDTH + 10, 60))
+        screen.blit(over_text, (BOARD_WIDTH + 10, SCORE_Y + 40))
 
     pygame.display.flip()
 
 
 def main():
+    pygame.mixer.pre_init(SAMPLE_RATE, -16, 1)
     pygame.init()
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Tetris")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 28)
 
+    bgm = make_bgm_sound()
+    bgm.set_volume(0.3)
+    bgm.play(loops=-1)
+
     board = create_board()
     piece = new_piece()
+    next_piece = new_piece()
     score = 0
     game_over = False
 
@@ -194,9 +264,10 @@ def main():
                 if not try_move(board, piece, 1, 0):
                     lock_piece(board, piece)
                     score += clear_full_lines(board) * 100
-                    piece = new_piece()
+                    piece, next_piece = next_piece, new_piece()
                     if not is_valid_position(board, piece.cells()):
                         game_over = True
+                        bgm.stop()
 
             elif event.type == pygame.KEYDOWN and not game_over:
                 if event.key == pygame.K_LEFT:
@@ -211,13 +282,15 @@ def main():
                     hard_drop(board, piece)
                     lock_piece(board, piece)
                     score += clear_full_lines(board) * 100
-                    piece = new_piece()
+                    piece, next_piece = next_piece, new_piece()
                     if not is_valid_position(board, piece.cells()):
                         game_over = True
+                        bgm.stop()
 
-        draw_board(screen, board, piece, score, game_over, font)
+        draw_board(screen, board, piece, next_piece, score, game_over, font)
         clock.tick(60)
 
+    bgm.stop()
     pygame.quit()
     sys.exit()
 
