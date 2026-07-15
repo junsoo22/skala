@@ -1,0 +1,6 @@
+[
+  {
+    "row": 2,
+    "error": "1 validation error for SalesRecord\namount\n  Input should be greater than 0 [type=greater_than, input_value=-300, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/greater_than"
+  }
+]
