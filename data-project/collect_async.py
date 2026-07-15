@@ -59,6 +59,10 @@ def main():
             print(f"  {str(data)[:200]}")
         print()
 
+    failed = {name: data["error"] for name, data in results.items() if "error" in data}
+    assert not failed, f"응답 실패한 API가 있습니다: {failed}"
+    print(f"assert 통과: {len(results)}개 API 응답 정상 확인")
+
 
 if __name__ == "__main__":
     main()
