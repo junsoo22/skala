@@ -2,7 +2,7 @@
 import pandas as pd
 from scipy import stats
 
-NUMERIC_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat"]
+NUMERIC_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat", "YearsCode"]
 
 
 def run(df: pd.DataFrame) -> dict:
