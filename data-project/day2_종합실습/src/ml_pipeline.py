@@ -17,8 +17,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-NUM_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat"]
-CAT_COLS = ["Age", "Employment", "EdLevel", "DevType", "OrgSize", "Country"]
+LANG_FLAG_COLS = [
+    "lang_javascript", "lang_html_css", "lang_python", "lang_sql", "lang_typescript",
+    "lang_bash_shell", "lang_java", "lang_csharp", "lang_cpp", "lang_c",
+]
+NUM_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat", "YearsCode"] + LANG_FLAG_COLS
+CAT_COLS = [
+    "Age", "Employment", "EdLevel", "DevType", "OrgSize", "Country",
+    "MainBranch", "Industry", "ICorPM", "AISent",
+]
 MODEL_PATH = Path("models/remote_work_model.pkl")
 
 
