@@ -3,7 +3,7 @@
 ## 1. 데이터 개요
 
 - 원본(전체 114개 컬럼): {{ pandas_polars_compare.pandas_shape[0] }}행 {{ pandas_polars_compare.pandas_shape[1] }}열
-- 원본(분석에 사용할 10개 컬럼만 선택 후): {{ eda_summary.raw_shape[0] }}행 {{ eda_summary.raw_shape[1] }}열
+- 원본(분석에 사용할 {{ eda_summary.raw_shape[1] }}개 컬럼만 선택 후): {{ eda_summary.raw_shape[0] }}행 {{ eda_summary.raw_shape[1] }}열
 - RemoteWork 결측으로 제거: {{ eda_summary.target_missing_removed }}건
 - 중복 제거: {{ eda_summary.duplicates_removed }}건
 - 정제 후: {{ eda_summary.selected_shape[0] }}행 {{ eda_summary.selected_shape[1] }}열
