@@ -1,0 +1,47 @@
+# Day 2 종합실습 — Stack Overflow Developer Survey 2024 분석 리포트
+
+## 1. 데이터 개요
+
+- 원본: {{ eda_summary.raw_shape[0] }}행 {{ eda_summary.raw_shape[1] }}열
+- RemoteWork 결측으로 제거: {{ eda_summary.target_missing_removed }}건
+- 중복 제거: {{ eda_summary.duplicates_removed }}건
+- 정제 후: {{ eda_summary.selected_shape[0] }}행 {{ eda_summary.selected_shape[1] }}열
+- 컬럼별 결측 비율(%): {{ eda_summary.missing_ratio }}
+
+## 2. Pandas vs Polars 로딩 비교
+
+| 항목 | Pandas | Polars |
+|---|---|---|
+| shape | {{ pandas_polars_compare.pandas_shape }} | {{ pandas_polars_compare.polars_shape }} |
+| 로딩 시간(초) | {{ pandas_polars_compare.pandas_load_seconds }} | {{ pandas_polars_compare.polars_load_seconds }} |
+
+## 3. 통계분석
+
+### 3.1 기술통계
+```
+{{ describe }}
+```
+
+### 3.2 상관계수
+```
+{{ corr }}
+```
+
+### 3.3 t-test (Remote vs In-person 연봉 평균 차이)
+
+- t = {{ ttest.t }}, p = {{ ttest.p }}
+- 해석: {{ ttest.interpretation }}
+
+## 4. 시각화
+
+- 정적 차트(Seaborn): [{{ seaborn_chart_path }}]({{ seaborn_chart_path }})
+- 인터랙티브 차트(Plotly): [{{ plotly_chart_path }}]({{ plotly_chart_path }})
+
+## 5. ML Pipeline 결과 (타깃: RemoteWork == Remote)
+
+| 모델 | Accuracy | F1 |
+|---|---|---|
+{% for name, metrics in model_comparison.items() %}| {{ name }} | {{ metrics.accuracy }} | {{ metrics.f1 }} |
+{% endfor %}
+
+**최종 선택 모델**: {{ best_model_name }} (저장 경로: `{{ model_path }}`)
