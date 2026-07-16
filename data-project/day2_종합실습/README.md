@@ -25,15 +25,24 @@ python main.py
 
 ## 분석 내용
 
-- **데이터**: Stack Overflow Developer Survey 2024 (114개 컬럼 중 `RemoteWork`,
-  `Age`, `Employment`, `EdLevel`, `DevType`, `OrgSize`, `Country`, `ConvertedCompYearly`,
-  `WorkExp`, `JobSat` 10개만 사용)
-- **결측치 처리**: 타깃(`RemoteWork`)이 없는 행은 제거. 나머지 컬럼의 결측(40~53%대)은
-  일괄 삭제하지 않고 통계 단계는 `dropna`, ML 단계는 `SimpleImputer`로 각자 필요한 곳에서
-  처리 — `eda_summary.missing_ratio`로 결측 현황은 투명하게 보고한다.
+- **데이터**: Stack Overflow Developer Survey 2024 (114개 컬럼 중 25개 사용)
+  - 기본 컬럼(10개): `RemoteWork`(타깃), `Age`, `Employment`, `EdLevel`, `DevType`, `OrgSize`,
+    `Country`, `ConvertedCompYearly`, `WorkExp`, `JobSat`
+  - 확장 컬럼(5개): `MainBranch`, `Industry`, `ICorPM`, `AISent`, `YearsCode`
+  - 언어 플래그(10개): `LanguageHaveWorkedWith`(다중선택, 세미콜론 구분)에서 응답 빈도
+    상위 10개 언어(JavaScript/HTML-CSS/Python/SQL/TypeScript/Bash·Shell/Java/C#/C++/C)를
+    `lang_*` 이진 컬럼으로 풀어냄
+  - 나머지 89개 컬럼은 자유서술형·조건부 스킵으로 결측이 극단적으로 많거나 분석 목적과
+    무관해 제외
+- **결측치 처리**: 타깃(`RemoteWork`)이 없는 행은 제거. 언어 플래그는 무응답을 "해당 언어
+  미사용(0)"으로 채움. 그 외 컬럼의 결측(3~55%대)은 일괄 삭제하지 않고 통계 단계는
+  `dropna`, ML 단계는 `SimpleImputer`로 각자 필요한 곳에서 처리 —
+  `eda_summary.missing_ratio`로 결측 현황은 투명하게 보고한다.
 - **통계**: 기술통계, 상관계수, Remote vs In-person 연봉 평균 t-test
 - **시각화**: Seaborn(연봉 분포 + 실무경력 박스플롯), Plotly(상관관계 히트맵)
-- **ML**: `RemoteWork == "Remote"` 이진분류, LogisticRegression vs RandomForestClassifier 비교
+- **ML**: `RemoteWork == "Remote"` 이진분류, LogisticRegression(F1≈0.61) vs
+  RandomForestClassifier(F1≈0.56) 비교 — 언어 플래그·AI 태도 등 확장 피처 덕분에 기본
+  10컬럼만 썼을 때(F1≈0.58)보다 향상됨
 
 ## 프로젝트 구조
 
