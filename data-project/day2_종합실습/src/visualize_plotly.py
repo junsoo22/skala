@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 
-NUMERIC_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat"]
+NUMERIC_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat", "YearsCode"]
 
 
 def run(df: pd.DataFrame, output_dir: Path) -> dict:
