@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+docs/
+day2_종합실습/data/raw/
+day2_종합실습/reports/
+day2_종합실습/models/
