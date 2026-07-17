@@ -30,6 +30,10 @@ CAT_COLS = [
     "MainBranch", "Industry", "ICorPM", "AISent",
 ]
 MODEL_PATH = Path("models/remote_work_model.pkl")
+# 원-핫 인코딩된 범주형 피처는 표본이 이 값 미만이면 계수가 커도 신뢰하지 않는다
+# (희귀 범주는 과적합으로 계수가 튀기 쉬움 — 예: 응답자 16명뿐인 나라의 계수는 우연일 가능성이 높음)
+MIN_CATEGORY_SAMPLES = 500
+TOP_N_FEATURES = 10
 
 
 def _build_preprocessor() -> ColumnTransformer:
@@ -47,6 +51,51 @@ def _build_preprocessor() -> ColumnTransformer:
     ])
 
 
+def _feature_importance(pipeline: Pipeline, X_train: pd.DataFrame) -> dict:
+    """최종 선택된 모델의 피처 중요도를 계산한다.
+
+    - "안정적인 피처"(수치형+언어 플래그)는 전체 응답자에 다 존재하는 값이라 표본 걱정 없이
+      그대로 사용한다.
+    - 원-핫 인코딩된 범주형 피처는 MIN_CATEGORY_SAMPLES 이상인 것만 "신뢰할 수 있는 피처"로
+      취급한다. 희귀 범주(예: 응답자 10여 명뿐인 나라)는 계수가 커도 과적합일 가능성이 높다.
+    """
+    clf = pipeline.named_steps["clf"]
+    feature_names = pipeline.named_steps["prep"].get_feature_names_out()
+
+    if hasattr(clf, "coef_"):
+        scores = clf.coef_[0]
+    elif hasattr(clf, "feature_importances_"):
+        scores = clf.feature_importances_
+    else:
+        return {"stable_features": [], "reliable_categorical_features": []}
+
+    importance = pd.DataFrame({"feature": feature_names, "score": scores})
+    importance["abs_score"] = importance["score"].abs()
+
+    always_present = {f"num__{c}" for c in NUM_COLS}
+    stable = (
+        importance[importance["feature"].isin(always_present)]
+        .sort_values("abs_score", ascending=False)
+        .head(TOP_N_FEATURES)
+    )
+
+    category_counts = {}
+    for col in CAT_COLS:
+        for value, count in X_train[col].value_counts().items():
+            category_counts[f"cat__{col}_{value}"] = int(count)
+    importance["n"] = importance["feature"].map(category_counts)
+    reliable_cat = (
+        importance[importance["feature"].str.startswith("cat__") & (importance["n"] >= MIN_CATEGORY_SAMPLES)]
+        .sort_values("abs_score", ascending=False)
+        .head(TOP_N_FEATURES)
+    )
+
+    return {
+        "stable_features": stable[["feature", "score"]].round(4).to_dict("records"),
+        "reliable_categorical_features": reliable_cat[["feature", "score", "n"]].round(4).to_dict("records"),
+    }
+
+
 def run(df: pd.DataFrame) -> dict:
     """전처리+모델 Pipeline을 구성해 학습·평가·저장한다.
 
@@ -58,6 +107,7 @@ def run(df: pd.DataFrame) -> dict:
             "model_comparison": dict,  # {"LogisticRegression": {"accuracy":.., "f1":..}, "RandomForest": {...}}
             "best_model_name": str,
             "model_path": str,
+            "feature_importance": dict,  # {"stable_features": [...], "reliable_categorical_features": [...]}
         }
     """
     y = (df["RemoteWork"] == "Remote").astype(int)
@@ -102,8 +152,12 @@ def run(df: pd.DataFrame) -> dict:
         raise RuntimeError("저장된 모델을 재로딩한 결과가 원본과 다릅니다.")
     logger.info("재로딩 검증 통과: F1=%s", reloaded_f1)
 
+    feature_importance = _feature_importance(best_model, X_train)
+    logger.info("피처 중요도(안정적) top: %s", feature_importance["stable_features"][:3])
+
     return {
         "model_comparison": model_comparison,
         "best_model_name": best_model_name,
         "model_path": str(MODEL_PATH),
+        "feature_importance": feature_importance,
     }

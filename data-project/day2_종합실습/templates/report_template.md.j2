@@ -46,3 +46,21 @@
 {% endfor %}
 
 **최종 선택 모델**: {{ best_model_name }} (저장 경로: `{{ model_path }}`)
+
+### 5.1 피처 중요도 (`{{ best_model_name }}` 계수 기준)
+
+전체 응답자에 항상 존재하는 피처(수치형+언어 플래그)만 표본 걱정 없이 볼 수 있다. (+)는
+Remote 방향, (-)는 비Remote 방향으로 작용함을 뜻한다.
+
+| 피처 | 계수 |
+|---|---|
+{% for f in feature_importance.stable_features %}| {{ f.feature }} | {{ f.score }} |
+{% endfor %}
+
+범주형 피처는 표본이 500명 이상인 것만 신뢰할 수 있는 것으로 간주해 뽑았다 (표본이 적은
+범주는 계수가 커도 우연/과적합일 가능성이 높아 제외).
+
+| 피처 | 계수 | 표본 수 |
+|---|---|---|
+{% for f in feature_importance.reliable_categorical_features %}| {{ f.feature }} | {{ f.score }} | {{ f.n }} |
+{% endfor %}

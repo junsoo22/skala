@@ -38,6 +38,7 @@ def main():
     ml = ml_pipeline.run(prep["df"])
     logger.info("모델 비교: %s", ml["model_comparison"])
     logger.info("최종 선택: %s -> %s", ml["best_model_name"], ml["model_path"])
+    logger.info("피처 중요도(안정적, top3): %s", ml["feature_importance"]["stable_features"][:3])
 
     section("6. 리포트 자동 생성")
     report_path = report.run({**prep, **stats, **seaborn_result, **plotly_result, **ml})

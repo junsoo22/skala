@@ -22,6 +22,12 @@ def _dummy_context():
         "model_comparison": {"LogisticRegression": {"accuracy": 0.71, "f1": 0.58}},
         "best_model_name": "LogisticRegression",
         "model_path": "models/remote_work_model.pkl",
+        "feature_importance": {
+            "stable_features": [{"feature": "num__YearsCode", "score": 0.12}],
+            "reliable_categorical_features": [
+                {"feature": "cat__Country_Ukraine", "score": 2.08, "n": 1853}
+            ],
+        },
     }
 
 
@@ -33,4 +39,6 @@ def test_run_creates_report_with_expected_sections(tmp_path, monkeypatch):
     content = Path(path).read_text(encoding="utf-8")
     assert "## 1. 데이터 개요" in content
     assert "## 5. ML Pipeline 결과" in content
+    assert "### 5.1 피처 중요도" in content
     assert "LogisticRegression" in content
+    assert "num__YearsCode" in content
