@@ -109,3 +109,67 @@ python main.py
 
 `lang_javascript`, `lang_html_css`, `lang_python`, `lang_sql`, `lang_typescript`,
 `lang_bash_shell`, `lang_java`, `lang_csharp`, `lang_cpp`, `lang_c`
+
+## 7. 모델링 (알고리즘 분석)
+
+**피처·타깃 구성**
+- 타깃: `RemoteWork == "Remote"` → 1, 그 외(Hybrid/In-person) → 0 (이진분류)
+- 피처 24개: 수치형 4개(`ConvertedCompYearly`/`WorkExp`/`JobSat`/`YearsCode`) + 언어 플래그
+  10개(`lang_*`) + 범주형 10개(`Age`~`AISent`)
+
+**전처리**: `ColumnTransformer`로 유형별로 다르게 처리한다.
+- 수치형: `SimpleImputer(strategy="median")` → `StandardScaler`
+- 범주형: `SimpleImputer(strategy="constant", fill_value="missing")` → `OneHotEncoder(handle_unknown="ignore")`
+
+**알고리즘 후보 2개를 의도적으로 대비되는 계열로 골랐다**
+
+| 모델 | 계열 | 선택 이유 |
+|---|---|---|
+| `LogisticRegression` | 선형 | 해석 용이, 학습 빠름, 베이스라인으로 적합 |
+| `RandomForestClassifier` | 비선형(트리 앙상블) | 피처 간 상호작용·비선형 패턴을 잡아낼 수 있는지 확인 |
+
+두 계열을 비교하면 "이 문제가 몇 개 요인의 단순 결합으로 설명되는지, 아니면 복잡한 상호작용이
+필요한지"를 확인할 수 있다.
+
+**학습 설정**: `train_test_split(test_size=0.2, random_state=42, stratify=y)` — 클래스 비율
+(약 38:62)을 train/test에 동일하게 유지하고, `random_state` 고정으로 재현성을 확보한다.
+
+**선택 기준**: `accuracy`가 아니라 **F1-score**로 최종 모델을 고른다. 클래스가 완전히
+균형잡히지 않아서(38:62) accuracy만으로는 다수 클래스를 그냥 예측해도 점수가 높게 나올 수
+있기 때문이다.
+
+**결과**: `LogisticRegression`(F1 0.612)이 `RandomForest`(F1 0.556)보다 우세해 최종
+선택됐다 → 이 데이터에서는 재택근무 여부가 복잡한 비선형 상호작용보다 몇 개 요인(연봉·경력·
+언어스택·AI 태도 등)의 비교적 단순한 결합으로 상당 부분 설명된다는 뜻이다. 모델은
+`joblib.dump()`로 저장하고, 재로딩 후 동일한 F1이 나오는지까지 검증한다.
+
+## 8. 평가 (성능지표, 목표 검토)
+
+3번 목표 각각을 실제 결과로 다시 검토한다.
+
+| 목표 | 결과 | 판정 |
+|---|---|---|
+| 1) 재택근무 여부 이진분류 모델 구축 | LogisticRegression F1 0.612, Accuracy 72.9% | ✅ 달성 |
+| 2) Remote vs In-person 연봉 차이 통계적 검증 | t=5.93, p=3.3×10⁻⁹ (p<0.05) | ✅ 달성 |
+| 3) 예측력에 기여하는 요인 파악 | 기본 10컬럼(F1 0.578) → 확장 25컬럼(F1 0.612)으로 **피처를 추가하니 실제로 성능이 오른다는 것까지는 확인**했지만, 어떤 피처가 얼마나 기여했는지(계수·중요도 분석)는 아직 안 함 | ⚠️ 부분 달성 |
+
+**종합 평가**: 4개 KPI(F1 개선/t-test 유의성/파이프라인 재현성/데이터 규모) 중 3개는 완전히
+달성했고, "어떤 요인이 왜 중요한지"는 다음 단계 과제로 남아있다. 개선하려면
+`LogisticRegression.coef_`를 `OneHotEncoder`가 만든 피처 이름과 매칭해서 계수 크기순으로
+보거나, `permutation_importance`로 피처 중요도를 뽑아보면 된다.
+
+## 9. 배포
+
+이번 과제 범위는 실제 서비스 배포가 아니라 "팀에게 결과를 공유하고 검증받는 것"이므로,
+그 관점에서의 배포 방식은 다음과 같다.
+
+- **코드·문서**: GitHub 저장소에 전체 커밋·push 완료 — 누구나 clone 후
+  `pip install -r requirements.txt && python main.py`로 동일한 결과를 재현할 수 있다
+- **모델**: `models/remote_work_model.pkl`을 `joblib.load()`로 불러오면 바로 예측에 재사용 가능
+  (Pipeline 객체 안에 전처리까지 포함돼 있어 원본 컬럼만 있으면 추가 전처리 코드 없이 동작)
+- **리포트**: `reports/report.md` + 차트 2종을 그대로 팀 공유·발표 자료로 활용
+
+실제 프로덕션 배포까지 간다면 고려할 점(현재 범위 밖, 참고용):
+- 모델을 FastAPI 등으로 감싸 예측 API화
+- 신규 설문 데이터가 나올 때마다 파이프라인 재실행하는 스케줄링(예: PDF 12장의 `schedule`)
+- 이미 붙여둔 `logging`(콘솔+`logs/pipeline.log`)을 운영 모니터링으로 확장
