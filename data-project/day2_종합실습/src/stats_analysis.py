@@ -1,6 +1,10 @@
 """통계분석: 기술통계, 상관계수, t-test(RemoteWork에 따른 연봉 평균 차이)."""
+import logging
+
 import pandas as pd
 from scipy import stats
+
+logger = logging.getLogger(__name__)
 
 NUMERIC_COLS = ["ConvertedCompYearly", "WorkExp", "JobSat", "YearsCode"]
 
@@ -37,7 +41,9 @@ def run(df: pd.DataFrame) -> dict:
                 "연봉 평균 차이는 통계적으로 유의미하지 않음 (우연일 수 있음)"
             )
         ttest = {"t": round(float(t_stat), 4), "p": float(p_value), "interpretation": interpretation}
+        logger.info("t-test 완료: %s", interpretation)
     except ValueError as e:
+        logger.warning("t-test 실패: %s", e)
         ttest = {"t": None, "p": None, "interpretation": f"t-test 실패: {e}"}
 
     return {"describe": describe, "corr": corr, "ttest": ttest}

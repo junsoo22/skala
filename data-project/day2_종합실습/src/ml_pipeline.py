@@ -4,6 +4,7 @@ ColumnTransformer(수치형 imputer+scaler / 범주형 imputer+onehot) + Pipelin
 LogisticRegression vs RandomForestClassifier를 비교하고, F1 기준으로 더 나은 모델을
 joblib으로 저장한다.
 """
+import logging
 from pathlib import Path
 
 import joblib
@@ -16,6 +17,8 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+logger = logging.getLogger(__name__)
 
 LANG_FLAG_COLS = [
     "lang_javascript", "lang_html_css", "lang_python", "lang_sql", "lang_typescript",
@@ -79,17 +82,25 @@ def run(df: pd.DataFrame) -> dict:
             "f1": round(f1_score(y_test, y_pred), 4),
         }
         fitted_models[name] = pipeline
+        logger.info("%s 학습 완료: %s", name, model_comparison[name])
 
     best_model_name = max(model_comparison, key=lambda name: model_comparison[name]["f1"])
     best_model = fitted_models[best_model_name]
+    logger.info("최종 선택 모델: %s", best_model_name)
 
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(best_model, MODEL_PATH)
+    logger.info("모델 저장 완료: %s", MODEL_PATH)
 
     reloaded = joblib.load(MODEL_PATH)
     reloaded_f1 = round(f1_score(y_test, reloaded.predict(X_test)), 4)
     if reloaded_f1 != model_comparison[best_model_name]["f1"]:
+        logger.error(
+            "재로딩 모델 F1 불일치: 원본=%s, 재로딩=%s",
+            model_comparison[best_model_name]["f1"], reloaded_f1,
+        )
         raise RuntimeError("저장된 모델을 재로딩한 결과가 원본과 다릅니다.")
+    logger.info("재로딩 검증 통과: F1=%s", reloaded_f1)
 
     return {
         "model_comparison": model_comparison,

@@ -13,12 +13,15 @@ LanguageHaveWorkedWith는 상위 10개 언어를 이진 플래그(lang_*)로 풀
 통계 분석은 컬럼 단위로 각자 필요한 곳에서 dropna를, ML은 SimpleImputer로 대체값을 채우는
 게 더 타당하기 때문이다. eda_summary의 missing_ratio로 결측 현황은 투명하게 남긴다.
 """
+import logging
 import time
 import urllib.request
 from pathlib import Path
 
 import pandas as pd
 import polars as pl
+
+logger = logging.getLogger(__name__)
 
 SURVEY_URL = (
     "https://github.com/StackExchange/Survey/raw/refs/heads/main/"
@@ -53,7 +56,11 @@ def download_if_missing(url: str, dest: Path) -> Path:
     """dest 파일이 없으면 url에서 다운로드해 캐시하고, 최종 경로를 반환한다."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     if not dest.exists():
+        logger.info("데이터 다운로드 시작: %s -> %s", url, dest)
         urllib.request.urlretrieve(url, dest)
+        logger.info("데이터 다운로드 완료: %s", dest)
+    else:
+        logger.info("캐시된 데이터 사용: %s", dest)
     return dest
 
 
@@ -84,6 +91,7 @@ def run() -> dict:
     try:
         path = download_if_missing(SURVEY_URL, RAW_DATA_PATH)
     except OSError as e:
+        logger.error("설문 데이터 다운로드 실패: %s", e)
         raise RuntimeError(f"설문 데이터 다운로드 실패: {e}") from e
 
     start = time.perf_counter()

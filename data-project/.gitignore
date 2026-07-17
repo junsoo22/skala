@@ -5,3 +5,5 @@ docs/
 day2_종합실습/data/raw/
 day2_종합실습/reports/
 day2_종합실습/models/
+day2_종합실습/logs/
+day2_종합실습/.pytest_cache/
