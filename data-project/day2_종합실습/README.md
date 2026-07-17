@@ -21,7 +21,17 @@ python main.py
 
 최초 실행 시 `data/raw/results.csv`(약 152MB)를 자동 다운로드한다. 완료되면
 `reports/report.md`, `reports/eda_seaborn.png`, `reports/eda_plotly.html`,
-`models/remote_work_model.pkl`이 생성된다.
+`models/remote_work_model.pkl`이 생성된다. 실행 로그는 콘솔과 `logs/pipeline.log`에
+동시에 기록된다(`print()` 대신 `logging` 모듈 사용).
+
+## 테스트
+
+```bash
+pytest tests/ -v
+```
+
+네트워크 다운로드 없이(합성 데이터 fixture 사용) 각 모듈의 `run()`을 독립적으로 검증한다.
+`data_prep`은 다운로드 캐시 로직·컬럼 변환 함수만 순수 단위 테스트로 확인한다.
 
 ## 분석 내용
 
@@ -55,10 +65,13 @@ day2_종합실습/
 │   ├── visualize_seaborn.py    # 정적 시각화
 │   ├── visualize_plotly.py     # 인터랙티브 시각화
 │   ├── ml_pipeline.py          # ML Pipeline
-│   └── report.py               # 리포트 자동화
+│   ├── report.py               # 리포트 자동화
+│   └── logging_config.py       # 공용 logging 설정
+├── tests/                      # pytest 테스트 (모듈별 1파일 + conftest.py 공용 fixture)
 ├── templates/report_template.md.j2
 ├── reports/                    # report.md, 차트 출력 (git 제외)
 ├── models/                     # 저장된 모델 (git 제외)
+├── logs/                       # pipeline.log (git 제외)
 ├── main.py                     # 파이프라인 진입점
 └── requirements.txt
 ```

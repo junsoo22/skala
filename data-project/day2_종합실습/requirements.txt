@@ -6,3 +6,4 @@ plotly
 scikit-learn
 scipy
 jinja2
+pytest
