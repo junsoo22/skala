@@ -65,3 +65,47 @@ python main.py
 - 타깃(`RemoteWork`) 결측 10,631건 제거, 중복 2,184건 제거 → 52,622행
 - 다중선택 컬럼(`LanguageHaveWorkedWith`)은 상위 10개 언어를 이진 피처(`lang_*`)로 분해
 - Pandas 대비 Polars 로딩 속도 약 7.9배 빠름 (0.15초 vs 1.23초, 전체 114개 컬럼 기준)
+
+### 6.1 사용 컬럼 상세 (원본 114개 중 25개)
+
+**타깃 (1개)**
+
+| 컬럼 | 의미 |
+|---|---|
+| `RemoteWork` | 근무 형태 (Remote/Hybrid/In-person) — 위 2.1 참고 |
+
+**기본 범주형 (6개) — 인구통계·직무 기본 정보**
+
+| 컬럼 | 의미 |
+|---|---|
+| `Age` | 연령대 (예: "25-34 years old") |
+| `Employment` | 고용 형태 (정규직/프리랜서/학생 등, 다중선택 가능) |
+| `EdLevel` | 최종 학력 |
+| `DevType` | 개발자 직군 (풀스택/백엔드/프론트엔드/데스크톱 등) |
+| `OrgSize` | 소속 조직 규모 (직원 수 구간) |
+| `Country` | 거주 국가 |
+
+**확장 범주형 (4개) — 이번에 추가로 넓힌 컬럼**
+
+| 컬럼 | 의미 |
+|---|---|
+| `MainBranch` | 개발자 여부 유형 (전문 개발자/학습자/취미로 코딩/과거 개발자 등) |
+| `Industry` | 소속 산업군 (소프트웨어/금융/헬스케어 등) |
+| `ICorPM` | 개인 기여자(Individual Contributor) vs 매니저(People Manager) |
+| `AISent` | AI 도구에 대한 태도 (매우 긍정적 ~ 매우 부정적) |
+
+**수치형 (4개) — 통계·시각화·ML 전 단계에서 다목적으로 사용**
+
+| 컬럼 | 의미 |
+|---|---|
+| `ConvertedCompYearly` | 연봉 (USD 환산) |
+| `WorkExp` | 실무 경력 (년) |
+| `JobSat` | 직무 만족도 (1~10점) |
+| `YearsCode` | 총 코딩 경력 (취미 포함, 년) |
+
+**언어 플래그 (10개) — `LanguageHaveWorkedWith`(다중선택)에서 파생, ML 피처 전용**
+
+응답 빈도 상위 10개 언어를 "해당 언어를 써봤는가(1/0)"로 각각 이진 컬럼화했다.
+
+`lang_javascript`, `lang_html_css`, `lang_python`, `lang_sql`, `lang_typescript`,
+`lang_bash_shell`, `lang_java`, `lang_csharp`, `lang_cpp`, `lang_c`
