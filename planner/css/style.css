@@ -1,0 +1,571 @@
+/* ================================================
+   SKALA 스터디 플래너
+   HTML은 구조를, 이 파일은 표현을 담당한다.
+   SKALA 실습 자료 자체의 시각 언어(흰 배경·검정 볼드·레드 포인트·
+   빨간 테두리 콜아웃 박스)를 그대로 가져와 SK 계열사 느낌을 낸다.
+================================================ */
+
+/* ── 1. 변수 ───────────────────────────────── */
+:root {
+  --bg: #ffffff;
+  --text: #14161a;
+  --text-dim: #6b7280;
+  --border: #e6e7eb;
+  --accent: #ea002c;
+
+  --font-body: "Pretendard", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 간격 스케일 — 4px 단위로 통일해 margin/padding/gap에 재사용한다 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+
+  --radius: 6px;
+}
+
+/* 다크 모드 — 색만 교체하고 나머지 스타일은 변수를 그대로 재사용한다 */
+:root[data-theme="dark"] {
+  --bg: #14161a;
+  --text: #f2f3f5;
+  --text-dim: #9aa1ad;
+  --border: #2a2d35;
+}
+
+/* ── 2. 초기화 ───────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: var(--space-1) var(--space-4) var(--space-9);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+/* 상단 브랜드 바 — 유일한 장식, 페이지 전체 폭에 얇게 한 줄 */
+body::before {
+  content: "";
+  display: block;
+  height: 3px;
+  margin: 0 calc(var(--space-4) * -1) var(--space-8);
+  background: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 3. 페이지 뼈대 ───────────────────────────── */
+.page {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.container {
+  display: grid;
+  gap: 0;
+}
+
+/* ── 4. 헤더 ───────────────────────────────── */
+.header { margin-bottom: var(--space-9); }
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  margin: 0 0 var(--space-1);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .08em;
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-body);
+  font-size: .78rem;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+.logo {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+}
+.logo-accent { color: var(--accent); }
+
+.subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--text-dim);
+  font-size: .88rem;
+}
+
+/* ── 5. 섹션 (카드 없이 여백 + 구분선) ───────────── */
+.block {
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--border);
+}
+.block + .block { margin-top: var(--space-7); }
+.container > .block:first-child { padding-top: 0; border-top: 0; }
+
+.block-title {
+  margin: 0 0 var(--space-5);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+.block-head .block-title { margin-bottom: 0; }
+
+/* ── 6. 폼 (Flexbox) ─────────────────────────────
+   1행: 학습 목표(전체 폭) · 2행: 분류 + 마감일 + 추가 버튼.
+   한 줄에 4개를 다 넣으면 560px 폭 안에서 항상 어중간하게 줄바꿈되므로
+   두 줄로 나누고, 모든 입력에 라벨을 같은 방식으로 보여 통일감을 준다. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field-label {
+  font-size: .8rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.field-optional {
+  font-size: .78rem;
+  opacity: .7;
+}
+
+.form-row {
+  display: flex;
+  align-items: end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.form-row .field { flex: 1 1 130px; min-width: 0; }
+.form-row .btn { flex: 0 0 auto; }
+
+.form-input, .form-select {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: .95rem;
+  width: 100%;
+}
+
+.form-input::placeholder { color: var(--text-dim); }
+.form-input-date { color: var(--text-dim); }
+
+/* 다크 모드에서 기본 캘린더 아이콘이 안 보이는 문제 보정 */
+:root[data-theme="dark"] .form-input-date::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.search-input { flex: 1 1 200px; min-width: 0; }
+.sort-select { flex: 0 1 140px; color: var(--text-dim); }
+
+.btn {
+  border: 0;
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #c40025; }
+
+.form-input:focus-visible,
+.form-select:focus-visible,
+.btn:focus-visible,
+.tab:focus-visible,
+.item-check:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form-error {
+  margin: var(--space-2) 0 0;
+  color: var(--accent);
+  font-size: .85rem;
+}
+
+/* ── 7. 필터 탭 (밑줄) ───────────────────────────── */
+.tabs { display: flex; gap: var(--space-1); }
+
+.tab {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: var(--space-1) var(--space-2) var(--space-2);
+  color: var(--text-dim);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+
+.tab.is-active {
+  color: var(--text);
+  font-weight: 700;
+  border-bottom-color: var(--accent);
+}
+
+/* ── 8. 목록 (Flexbox) ───────────────────────────── */
+.list { list-style: none; margin: 0; padding: 0; }
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  padding-left: var(--space-2);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.item:last-child { border-bottom: 0; }
+
+/* 도전 과제: 추가/삭제 시 부드러운 전환 (움직임 최소화 설정 시 생략) */
+@media (prefers-reduced-motion: no-preference) {
+  .item { animation: item-in .2s ease; }
+}
+@keyframes item-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.item-removing {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+/* 도전 과제: 목표 제목 더블클릭 수정 */
+.item-edit {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* F5: 마감일이 지난 목표는 줄 전체를 강조한다 (날짜 텍스트만으로는 눈에 덜 띄기 때문) */
+.item.is-overdue {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.item.is-overdue .item-text { font-weight: 600; }
+.item.is-overdue .item-due {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.item-check {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.item-text { flex: 1 1 auto; min-width: 0; }
+
+.item.is-done .item-text {
+  text-decoration: line-through;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.item-due {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--text-dim);
+}
+.item-due::before { content: "· "; }
+
+.item-meta {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.item-del {
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: .82rem;
+  padding: var(--space-1) 2px;
+  transition: color .15s ease;
+}
+.item-del:hover { color: var(--accent); }
+
+.list-empty {
+  color: var(--text-dim);
+  padding: var(--space-5) 0;
+  font-size: .9rem;
+}
+
+/* ── 9. 진행률 ───────────────────────────────── */
+.progress { margin-top: var(--space-5); }
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width .3s ease;
+}
+
+.progress-text {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--text-dim);
+}
+
+.summary {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--text-dim);
+}
+
+/* ── 9-1. 학습 활동 히트맵 (완료 목표를 날짜별로 쌓아 보여주는 시그니처 요소) ── */
+.streak {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--text-dim);
+}
+.streak strong {
+  font-size: 1.4rem;
+  color: var(--accent);
+  margin-right: var(--space-1);
+}
+
+/* 도전 요소: 목표를 완료할 때마다 경험치(XP)가 쌓이고 레벨이 오른다 */
+.level-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-4) 0;
+}
+
+.level-badge {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+.level-badge strong {
+  display: inline-block;
+  font-size: 1.3rem;
+  color: var(--accent);
+  transform-origin: center;
+}
+
+/* 레벨업 순간 숫자가 살짝 튀어오르는 연출 */
+@keyframes level-up-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .level-badge.is-leveling strong { animation: level-up-pulse .6s ease; }
+}
+
+.xp-track {
+  flex: 1 1 100px;
+  min-width: 60px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.xp-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width .3s ease;
+}
+
+.xp-text {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* 84칸(12주×7일)은 항상 177px 폭 — 가로 스크롤이 필요 없어 overflow를
+   걸지 않는다 (걸면 아래 툴팁이 잘려 보이는 문제가 생긴다) */
+.heatmap-scroll {
+  max-width: 100%;
+  padding-bottom: var(--space-3);
+}
+
+.heatmap {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-flow: column;
+  grid-auto-columns: 12px;
+  gap: 3px;
+  width: max-content;
+}
+
+.heatmap-cell {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.heatmap-cell[data-level="1"] { background: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+.heatmap-cell[data-level="2"] { background: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+.heatmap-cell[data-level="3"] { background: var(--accent); }
+
+/* 브라우저 기본 title 툴팁(약 1초 지연) 대신, 즉시 뜨는 커스텀 툴팁 */
+.heatmap .heatmap-cell {
+  position: relative;
+  cursor: default;
+}
+.heatmap .heatmap-cell::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .1s ease;
+  z-index: 10;
+}
+.heatmap .heatmap-cell:hover::after {
+  opacity: 1;
+  transition-delay: .05s;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--text-dim);
+}
+.heatmap-legend .heatmap-cell { width: 10px; height: 10px; }
+
+/* ── 10. 팁 — SKALA 실습자료의 "[참고]" 콜아웃 박스 재현 ── */
+.callout {
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--bg);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  font-size: .9rem;
+  color: var(--text);
+}
+.callout strong { color: var(--accent); }
+
+/* ── 11. 푸터 ───────────────────────────────── */
+.footer {
+  margin-top: var(--space-9);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: .78rem;
+  text-align: right;
+}
+.footer p { margin: 0; }
+
+/* ── 12. 반응형 ───────────────────────────────── */
+@media (max-width: 480px) {
+  .header { margin-bottom: var(--space-7); }
+  .block { padding-top: var(--space-6); }
+  .block + .block { margin-top: var(--space-6); }
+  .form-row { flex-direction: column; align-items: stretch; }
+  .form-row .field { flex: 1 1 auto; }
+}

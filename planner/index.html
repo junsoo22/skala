@@ -1,78 +1,130 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SKALA 스터디 플래너</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKALA 스터디 플래너</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
     <header class="header">
-      <h1 class="logo">SKALA 스터디 플래너</h1>
-      <p class="today" id="today">2026년 7월 17일</p>
+      <div class="header-top">
+        <p class="brand">SKALA</p>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">다크 모드</button>
+      </div>
+      <h1 class="logo">스터디 <span class="logo-accent">플래너</span></h1>
+      <p class="subtitle">SK주식회사 AX · KDT 프로그래밍 기초 · 2일차 학습 기록</p>
     </header>
+
     <main class="container">
-      <section class="panel" aria-labelledby="form-title">
-        <h2 id="form-title" class="panel-title">학습 목표 추가</h2>
-
+      <section class="block" aria-labelledby="form-title">
+        <h2 id="form-title" class="block-title">학습 목표 추가</h2>
         <form class="form" id="goal-form">
-          <label class="sr-only" for="goal-input">학습 목표</label>
+          <div class="field field-title">
+            <label class="field-label" for="goal-input">학습 목표</label>
+            <input class="form-input" id="goal-input" type="text"
+                   placeholder="오늘 공부할 내용을 입력하세요" required>
+          </div>
 
-          <input
-            class="form-input"
-            id="goal-input"
-            type="text"
-            placeholder="오늘 공부할 내용을 입력하세요"
-            required
-          />
+          <div class="form-row">
+            <div class="field">
+              <label class="field-label" for="goal-category">분류</label>
+              <select class="form-select" id="goal-category">
+                <option value="HTML">HTML</option>
+                <option value="CSS">CSS</option>
+                <option value="JS">Javascript</option>
+              </select>
+            </div>
 
-          <label class="sr-only" for="goal-category">분류</label>
+            <div class="field">
+              <label class="field-label" for="goal-due">마감일 <span class="field-optional">(선택)</span></label>
+              <input class="form-input form-input-date" id="goal-due" type="date">
+            </div>
 
-          <select class="form-select" id="goal-category">
-            <option value="HTML">HTML</option>
-            <option value="CSS">CSS</option>
-            <option value="JS">JavaScript</option>
-          </select>
-
-          <button class="btn btn-primary" type="submit">추가</button>
+            <button class="btn btn-primary" type="submit">추가</button>
+          </div>
         </form>
-
         <p class="form-error" id="form-error" hidden>목표를 한 글자 이상 입력해 주세요.</p>
       </section>
-      <section class="panel" aria-labelledby="list-title">
-        <div class="panel-head">
-          <h2 id="list-title" class="panel-title">학습 목록</h2>
 
+      <section class="block" aria-labelledby="list-title">
+        <div class="block-head">
+          <h2 id="list-title" class="block-title">학습 목록</h2>
           <div class="tabs" id="filter-tabs" role="group" aria-label="목록 필터">
             <button class="tab is-active" type="button" data-filter="all">전체</button>
-
             <button class="tab" type="button" data-filter="active">진행중</button>
-
             <button class="tab" type="button" data-filter="done">완료</button>
           </div>
         </div>
 
-        <ul class="list" id="goal-list"></ul>
+        <div class="toolbar">
+          <label class="sr-only" for="goal-search">목표 검색</label>
+          <input class="form-input search-input" id="goal-search" type="text" placeholder="목표 검색">
 
-        <p class="list-empty" id="list-empty">아직 등록된 목표가 없습니다.</p>
+          <label class="sr-only" for="sort-select">정렬 기준</label>
+          <select class="form-select sort-select" id="sort-select">
+            <option value="default">기본순</option>
+            <option value="due">마감임박순</option>
+            <option value="newest">최신순</option>
+          </select>
+        </div>
+
+        <ul class="list" id="goal-list"></ul>
+        <p class="list-empty" id="list-empty">아직 등록된 목표가 없습니다. 예: "시맨틱 태그로 뼈대 만들기"처럼 오늘 배운 내용을 첫 목표로 추가해보세요.</p>
 
         <div class="progress">
-          <div class="progress-bar">
-            <span class="progress-fill" id="progress-fill"></span>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
           </div>
-
-          <p class="progress-text" id="progress-text">전체 0개 중 0개 완료</p>
+          <p class="progress-text" id="progress-text">전체 0개 중 0개 완료 (0%)</p>
         </div>
-      </section>
-      <section class="panel panel-tip">
-        <h2 class="panel-title">오늘의 팁</h2>
-        <p class="tip" id="tip">불러오는 중…</p>
+
+        <p class="summary" id="category-summary">HTML 0개 · CSS 0개 · JS 0개</p>
       </section>
 
-      <footer class="footer">
-        <p>&copy; 2026 SKALA · KDT 프로그래밍 기초</p>
-      </footer>
+      <section class="block">
+        <div class="block-head">
+          <h2 class="block-title">학습 활동</h2>
+          <p class="streak"><strong id="streak-count">0</strong>일 연속</p>
+        </div>
+
+        <div class="level-row">
+          <p class="level-badge" id="level-badge">Lv. <strong id="level-count">1</strong></p>
+          <div class="xp-track">
+            <div class="xp-fill" id="xp-fill"></div>
+          </div>
+          <p class="xp-text" id="xp-text">0 / 50 XP</p>
+        </div>
+
+        <div class="heatmap-scroll">
+          <div class="heatmap" id="heatmap" role="img" aria-label="최근 12주간 목표 완료 활동"></div>
+        </div>
+        <p class="heatmap-legend">
+          <span>적음</span>
+          <span class="heatmap-cell" data-level="0"></span>
+          <span class="heatmap-cell" data-level="1"></span>
+          <span class="heatmap-cell" data-level="2"></span>
+          <span class="heatmap-cell" data-level="3"></span>
+          <span>많음</span>
+        </p>
+      </section>
+
+      <section class="block block-tip">
+        <h2 class="sr-only">오늘의 팁</h2>
+        <p class="callout"><strong>[오늘의 팁]</strong> <span id="tip">불러오는 중…</span></p>
+      </section>
     </main>
-    <script src="js/app.js"></script>
-  </body>
+
+    <footer class="footer">
+      <p>© 2026 SKALA · KDT 프로그래밍 기초</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
 </html>
